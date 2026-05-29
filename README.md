@@ -170,9 +170,6 @@ cd simulator && node start-sim.js
 
 ---
 
-## 👥 Team
-
-**Cyberhack 2026** — PT. Sima Arome Industrial IoT Division
 
 ---
 
