@@ -1,0 +1,100 @@
+/* =========================================================
+   AromeTrack - Enterprise SCADA Stylesheet
+   ========================================================= */
+
+/* 1. Kustomisasi Scrollbar ala Dashboard Industri */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* 2. Latar Belakang Pola Geometris Nusantara (Terinspirasi Motif Kawung Minimalis) */
+.bg-motif-lokal {
+    background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 20.5V18H0v-2h20v-2.5L22.5 16h2.5V0h2v16h2.5l2.5-2.5V16h10v2H30v2.5L27.5 24h-2.5v16h-2V24h-2.5L18 26.5V24H0v-2h18v-1.5z' fill='%23ffffff' fill-opacity='0.08' fill-rule='evenodd'/%3E%3C/svg%3E");
+}
+
+/* 3. Latar Belakang Peta SCADA 2D (Gaya Blueprint / Grid Titik-titik presisi) */
+.scada-grid-bg {
+    background-color: #f8fafc;
+    background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+    background-size: 20px 20px;
+}
+
+/* 4. Animasi Peringatan HMI (Blinking) untuk Anomali Sistem */
+@keyframes alert-blink {
+    0% { opacity: 1; }
+    50% { opacity: 0.4; }
+    100% { opacity: 1; }
+}
+.status-alert {
+    animation: alert-blink 1s infinite;
+    background-color: #fef2f2 !important; /* Latar merah muda */
+    color: #dc2626 !important;            /* Teks merah pekat */
+    border: 2px solid #ef4444 !important; /* Garis pinggir merah */
+    transition: all 0.3s ease;
+}
+
+/* =========================================================
+   Sistem Grid untuk Denah Gudang (Warehouse Map)
+   ========================================================= */
+
+/* Mengatur wadah utama agar membentuk baris dan kolom rapi */
+.warehouse-layout {
+    display: grid;
+    /* Membuat 12 kolom, mirip rak standar pergudangan industri */
+    grid-template-columns: repeat(12, minmax(45px, 1fr));
+    gap: 12px;
+    padding: 10px;
+}
+
+/* Desain dasar untuk satu slot drum IBC/IPPC */
+.drum-slot {
+    aspect-ratio: 1 / 1;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 800;
+    transition: all 0.2s ease-in-out;
+    cursor: pointer;
+    border: 2px solid transparent;
+}
+
+/* Efek menonjol saat kursor diarahkan ke drum (Hover) */
+.drum-slot:hover {
+    transform: scale(1.15);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+}
+
+/* Warna & Logika Status Smart Slotting */
+.drum-empty {
+    background-color: transparent;
+    border-color: #e2e8f0;
+    color: #cbd5e1;
+}
+
+.drum-safe {
+    background-color: #10b981; /* Emerald-500 (Bahan Ekstrak Aman) */
+    color: white;
+    border-color: #059669; /* Emerald-600 */
+    box-shadow: inset 0 -3px 0 rgba(0,0,0,0.1);
+}
+
+.drum-hazard {
+    background-color: #ef4444; /* Red-500 (Bahan Kimia Berbahaya) */
+    color: white;
+    border-color: #dc2626; /* Red-600 */
+    box-shadow: inset 0 -3px 0 rgba(0,0,0,0.1);
+}

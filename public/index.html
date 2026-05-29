@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AromeTrack | Enterprise SCADA - Sima Arome</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="css/style.css">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="js/tailwind-config.js"></script>
+
+    <!-- Chart.js + Annotation Plugin -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+</head>
+<body class="bg-[#F8FAFC] font-sans text-slate-800 antialiased selection:bg-sima-primary selection:text-white">
+
+    <!-- ============================================ -->
+    <!-- LOGIN OVERLAY                                -->
+    <!-- ============================================ -->
+    <div id="login-overlay" class="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-sima-dark via-slate-900 to-slate-800">
+        <div class="w-full max-w-md mx-4">
+            <!-- Logo -->
+            <div class="text-center mb-8">
+                <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-sima-primary to-emerald-400 flex items-center justify-center text-white shadow-2xl mx-auto mb-4">
+                    <i class="fa-solid fa-leaf text-3xl"></i>
+                </div>
+                <h1 class="text-3xl font-extrabold text-white">AromeTrack</h1>
+                <p class="text-emerald-400 text-sm font-semibold tracking-widest uppercase mt-1">Enterprise SCADA System</p>
+                <p class="text-slate-400 text-xs mt-2">PT. Sima Arome — Industrial IoT Platform</p>
+            </div>
+
+            <!-- Login Card -->
+            <div class="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
+                <h2 class="text-white text-lg font-bold mb-6">Masuk ke Sistem</h2>
+                
+                <div id="login-error" class="hidden mb-4 p-3 bg-red-500/20 border border-red-500/30 rounded-xl text-red-300 text-sm font-medium">
+                </div>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-2 block">Username</label>
+                        <input type="text" id="login-username" placeholder="Masukkan username" 
+                            class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 transition-all">
+                    </div>
+                    <div>
+                        <label class="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-2 block">Password</label>
+                        <input type="password" id="login-password" placeholder="Masukkan password"
+                            class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 transition-all"
+                            onkeypress="if(event.key==='Enter') handleLogin()">
+                    </div>
+                    <button onclick="handleLogin()" id="login-btn"
+                        class="w-full py-3 bg-gradient-to-r from-sima-primary to-emerald-400 text-white font-bold rounded-xl hover:shadow-lg hover:shadow-emerald-500/25 transition-all active:scale-[0.98]">
+                        <i class="fa-solid fa-right-to-bracket mr-2"></i>Masuk
+                    </button>
+                </div>
+
+                <div class="mt-6 pt-4 border-t border-white/10">
+                    <p class="text-slate-500 text-xs text-center">Demo Credentials:</p>
+                    <div class="flex gap-2 mt-2 justify-center">
+                        <span class="text-xs px-2 py-1 bg-emerald-500/20 text-emerald-300 rounded-lg">admin / admin123</span>
+                        <span class="text-xs px-2 py-1 bg-blue-500/20 text-blue-300 rounded-lg">inspector / inspector123</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- TOAST NOTIFICATION CONTAINER                 -->
+    <!-- ============================================ -->
+    <div id="toast-container" class="fixed top-4 right-4 z-[60] space-y-3 w-96 max-w-[calc(100vw-2rem)]"></div>
+
+    <!-- ============================================ -->
+    <!-- MAIN APPLICATION                             -->
+    <!-- ============================================ -->
+    <div id="main-app" class="flex h-screen overflow-hidden hidden">
+
+        <!-- SIDEBAR -->
+        <aside id="sidebar" class="w-72 bg-sima-dark text-slate-300 flex flex-col transition-all duration-300 shadow-2xl z-20 relative">
+            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-sima-gold to-yellow-300"></div>
+            
+            <div class="h-20 flex items-center px-8 justify-between">
+                <div class="flex items-center sidebar-brand">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-sima-primary to-emerald-400 flex items-center justify-center text-white shadow-lg mr-3 flex-shrink-0">
+                        <i class="fa-solid fa-leaf text-xl"></i>
+                    </div>
+                    <div class="sidebar-text">
+                        <h1 class="text-white text-xl font-bold tracking-tight">AromeTrack</h1>
+                        <p class="text-[10px] text-emerald-400 font-semibold tracking-widest uppercase">By Sima Arome</p>
+                    </div>
+                </div>
+                <button onclick="toggleSidebar()" class="text-slate-400 hover:text-white transition-all p-2 rounded-lg hover:bg-white/10 sidebar-toggle-btn">
+                    <i class="fa-solid fa-angles-left text-sm" id="sidebar-toggle-icon"></i>
+                </button>
+            </div>
+            
+            <nav class="flex-1 px-4 py-8 space-y-2 overflow-y-auto" id="sidebar-menu">
+                <p class="px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4 sidebar-text">Operasional Utama</p>
+                
+                <a href="#" data-target="view-dashboard" class="menu-link flex items-center px-4 py-3 bg-white/10 text-white rounded-xl font-medium border border-white/5 shadow-inner backdrop-blur-sm transition-all">
+                    <i class="fa-solid fa-layer-group w-6 text-emerald-400"></i> <span class="sidebar-text">Integrasi Pusat</span>
+                </a>
+                
+                <a href="#" data-target="view-warehouse" class="menu-link flex items-center px-4 py-3 text-slate-400 hover:bg-white/5 hover:text-white rounded-xl font-medium transition-all">
+                    <i class="fa-solid fa-boxes-stacked w-6"></i> <span class="sidebar-text">Denah Gudang 2D</span>
+                </a>
+                
+                <a href="#" data-target="view-qc" class="menu-link flex items-center px-4 py-3 text-slate-400 hover:bg-white/5 hover:text-white rounded-xl font-medium transition-all">
+                    <i class="fa-solid fa-microscope w-6"></i> <span class="sidebar-text">Quality Control (AI)</span>
+                </a>
+
+                <a href="#" data-target="view-analytics" class="menu-link flex items-center px-4 py-3 text-slate-400 hover:bg-white/5 hover:text-white rounded-xl font-medium transition-all">
+                    <i class="fa-solid fa-chart-line w-6"></i> <span class="sidebar-text">Analitik Suhu</span>
+                </a>
+            </nav>
+
+            <!-- Sidebar Footer -->
+            <div class="px-6 py-4 border-t border-white/5">
+                <div class="flex items-center gap-2">
+                    <div id="connection-indicator" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse flex-shrink-0"></div>
+                    <span id="connection-label" class="text-xs text-amber-400 sidebar-text">Menghubungkan...</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="flex-1 flex flex-col overflow-y-auto relative">
+            
+            <!-- HEADER -->
+            <header class="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center px-10 sticky top-0 z-10">
+                <button onclick="toggleSidebar()" class="mr-4 p-2 rounded-lg hover:bg-slate-100 text-slate-500 hover:text-slate-700 transition-all lg:hidden" id="mobile-menu-btn">
+                    <i class="fa-solid fa-bars text-lg"></i>
+                </button>
+                <button onclick="toggleSidebar()" class="mr-4 p-2 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-all hidden lg:block" title="Toggle Sidebar">
+                    <i class="fa-solid fa-bars text-sm"></i>
+                </button>
+                <div class="flex items-center gap-2 text-sm font-medium text-slate-500" id="header-title">
+                    <i class="fa-solid fa-house"></i> <span class="mx-2">/</span> <span class="text-sima-primary font-semibold">Integrasi Pusat</span>
+                </div>
+                <!-- Role badge will be injected here by auth.js -->
+            </header>
+
+            <!-- PAGE CONTENT -->
+            <div class="p-4 md:p-10 max-w-7xl mx-auto w-full relative">
+                
+                <!-- ===== VIEW: DASHBOARD ===== -->
+                <div id="view-dashboard" class="page-view block animate-fade-in">
+                    <!-- KPI Cards Row 1 -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                        
+                        <!-- Card: Cold-Chain Temperature -->
+                        <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 hover:shadow-lg transition-all">
+                            <div class="flex justify-between items-start mb-4">
+                                <div class="w-14 h-14 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center text-2xl"><i class="fa-solid fa-temperature-snow"></i></div>
+                                <span class="text-xs font-bold px-2 py-1 bg-green-100 text-green-700 rounded-lg" id="status-suhu">Normal</span>
+                            </div>
+                            <p class="text-slate-500 text-sm font-medium mb-1">Sensor Cold-Chain</p>
+                            <h3 class="text-4xl font-extrabold text-slate-800" id="angka-suhu">-15.0°<span class="text-2xl text-slate-400">C</span></h3>
+                        </div>
+                        
+                        <!-- Card: AI Vision QC -->
+                        <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 hover:shadow-lg transition-all">
+                            <div class="flex justify-between items-start mb-4">
+                                <div class="w-14 h-14 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center text-2xl"><i class="fa-solid fa-microscope"></i></div>
+                            </div>
+                            <p class="text-slate-500 text-sm font-medium mb-1" id="ai-card-label">AI Vision: <span class="text-slate-400">Menunggu Data...</span></p>
+                            <h3 class="text-3xl font-extrabold text-slate-800" id="ai-card-value">Siap <span class="text-sm text-slate-400 block mt-1">Akurasi: --%</span></h3>
+                        </div>
+
+                        <!-- Card: PPIC Queue -->
+                        <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 hover:shadow-lg transition-all">
+                            <div class="flex justify-between items-start mb-4">
+                                <div class="w-14 h-14 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center text-2xl"><i class="fa-solid fa-boxes-packing"></i></div>
+                            </div>
+                            <p class="text-slate-500 text-sm font-medium mb-1">Antrean PPIC Masuk</p>
+                            <h3 class="text-4xl font-extrabold text-slate-800" id="angka-lot">0 <span class="text-lg font-semibold text-slate-400">Lot</span></h3>
+                        </div>
+                    </div>
+
+                    <!-- KPI Cards Row 2 -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <!-- Card: Rejection Rate -->
+                        <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 hover:shadow-lg transition-all">
+                            <div class="flex justify-between items-start mb-4">
+                                <div class="w-14 h-14 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center text-2xl"><i class="fa-solid fa-ban"></i></div>
+                            </div>
+                            <p class="text-slate-500 text-sm font-medium mb-1">Tingkat Penolakan</p>
+                            <h3 class="text-4xl font-extrabold text-slate-800" id="angka-rejection">0<span class="text-2xl text-slate-400">%</span></h3>
+                        </div>
+
+                        <!-- Card: Anomaly Count -->
+                        <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 hover:shadow-lg transition-all">
+                            <div class="flex justify-between items-start mb-4">
+                                <div class="w-14 h-14 rounded-2xl bg-orange-50 text-orange-600 flex items-center justify-center text-2xl"><i class="fa-solid fa-bolt"></i></div>
+                            </div>
+                            <p class="text-slate-500 text-sm font-medium mb-1">Anomali (1 Jam)</p>
+                            <h3 class="text-4xl font-extrabold text-slate-800" id="angka-anomaly">0 <span class="text-lg font-semibold text-slate-400">Event</span></h3>
+                        </div>
+
+                        <!-- Card: System Uptime -->
+                        <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 hover:shadow-lg transition-all">
+                            <div class="flex justify-between items-start mb-4">
+                                <div class="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-2xl"><i class="fa-solid fa-clock"></i></div>
+                                <div class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
+                            </div>
+                            <p class="text-slate-500 text-sm font-medium mb-1">Uptime Sistem</p>
+                            <h3 class="text-3xl font-extrabold text-slate-800 font-mono" id="angka-uptime">00:00:00</h3>
+                        </div>
+                    </div>
+
+                    <!-- Mini Chart Preview -->
+                    <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
+                        <div class="flex justify-between items-center mb-4">
+                            <div>
+                                <h2 class="text-lg font-bold text-slate-800">Tren Suhu Cold-Chain (Live)</h2>
+                                <p class="text-xs text-slate-500 mt-1">50 pembacaan terakhir — diperbarui setiap 3 detik</p>
+                            </div>
+                            <span class="text-xs px-3 py-1 bg-blue-50 text-blue-600 rounded-lg font-semibold">
+                                <i class="fa-solid fa-signal mr-1"></i>Real-Time
+                            </span>
+                        </div>
+                        <div class="h-[280px]">
+                            <canvas id="temp-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===== VIEW: WAREHOUSE MAP ===== -->
+                <div id="view-warehouse" class="page-view hidden animate-fade-in">
+                    <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-8 flex flex-col">
+                        <div class="flex justify-between items-center mb-6">
+                            <div>
+                                <h2 class="text-xl font-bold text-slate-800">Denah Lantai Gudang (Top-Down)</h2>
+                                <p class="text-sm text-slate-500 mt-1">Pemetaan letak drum berdasarkan klasifikasi AI</p>
+                            </div>
+                            <div class="flex gap-4 text-xs font-semibold">
+                                <span class="flex items-center gap-2"><div class="w-3 h-3 bg-emerald-500 rounded-sm"></div> Aman</span>
+                                <span class="flex items-center gap-2"><div class="w-3 h-3 bg-red-500 rounded-sm"></div> Berbahaya</span>
+                                <span class="flex items-center gap-2"><div class="w-3 h-3 bg-slate-300 rounded-sm"></div> Kosong</span>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-slate-50 rounded-2xl border-2 border-slate-200 p-6 scada-grid-bg">
+                            <div id="warehouse-grid" class="min-w-max"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===== VIEW: QC AI LOG ===== -->
+                <div id="view-qc" class="page-view hidden animate-fade-in">
+                    <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-4 md:p-8">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-3">
+                            <div>
+                                <h2 class="text-lg md:text-xl font-bold text-slate-800">Riwayat Inspeksi AI (Live)</h2>
+                                <p class="text-xs md:text-sm text-slate-500 mt-1">Klasifikasi kemurnian ekstrak secara otonom</p>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
+                                <span class="text-xs text-slate-500 font-medium">Auto-refresh 3s</span>
+                            </div>
+                        </div>
+                        
+                        <div class="overflow-x-auto rounded-xl border border-slate-200 -mx-2 md:mx-0">
+                            <table class="w-full text-left text-xs md:text-sm min-w-[600px]">
+                                <thead class="bg-slate-50 text-slate-500 font-medium border-b border-slate-200">
+                                    <tr>
+                                        <th class="px-3 md:px-6 py-3 md:py-4">Waktu</th>
+                                        <th class="px-3 md:px-6 py-3 md:py-4">ID Lot</th>
+                                        <th class="px-3 md:px-6 py-3 md:py-4">Tipe</th>
+                                        <th class="px-3 md:px-6 py-3 md:py-4">Skor AI</th>
+                                        <th class="px-3 md:px-6 py-3 md:py-4">Keputusan</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="ai-log-table" class="divide-y divide-slate-100 bg-white">
+                                    <tr>
+                                        <td colspan="5" class="px-6 py-8 text-center text-slate-400">
+                                            <i class="fa-solid fa-spinner fa-spin mr-2"></i>Menunggu data analitik AI masuk...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===== VIEW: ANALYTICS (Full Chart Page) ===== -->
+                <div id="view-analytics" class="page-view hidden animate-fade-in">
+                    <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-8">
+                        <div class="flex justify-between items-center mb-6">
+                            <div>
+                                <h2 class="text-xl font-bold text-slate-800">Analitik Suhu Cold-Chain</h2>
+                                <p class="text-sm text-slate-500 mt-1">Monitoring real-time dengan deteksi anomali otomatis</p>
+                            </div>
+                            <div class="flex gap-3">
+                                <span class="text-xs px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg font-semibold">
+                                    Batas Aman: -4°C s/d -20°C
+                                </span>
+                                <span class="text-xs px-3 py-1.5 bg-red-50 text-red-600 rounded-lg font-semibold">
+                                    <i class="fa-solid fa-triangle-exclamation mr-1"></i>Di atas -4°C = BAHAYA
+                                </span>
+                            </div>
+                        </div>
+                        <div class="h-[400px]">
+                            <canvas id="temp-chart-full"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- STYLES                                       -->
+    <!-- ============================================ -->
+    <style>
+        .animate-fade-in { animation: fadeIn 0.4s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .animate-slide-in { animation: slideIn 0.3s ease-out; }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(100px); } to { opacity: 1; transform: translateX(0); } }
+        
+        .animate-slide-out { animation: slideOut 0.3s ease-in forwards; }
+        @keyframes slideOut { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(100px); } }
+
+        .toast { transition: all 0.3s ease; }
+
+        .status-alert { 
+            animation: pulseAlert 1s infinite; 
+            border-color: #ef4444 !important;
+        }
+        @keyframes pulseAlert { 
+            0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); } 
+            50% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); } 
+        }
+
+        /* Sidebar Collapse */
+        #sidebar {
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+        }
+        #sidebar.collapsed {
+            width: 5rem;
+        }
+        #sidebar.collapsed .sidebar-text {
+            opacity: 0;
+            width: 0;
+            overflow: hidden;
+            white-space: nowrap;
+            transition: opacity 0.2s ease, width 0.2s ease;
+        }
+        #sidebar:not(.collapsed) .sidebar-text {
+            opacity: 1;
+            transition: opacity 0.3s ease 0.1s;
+        }
+        #sidebar.collapsed .sidebar-brand {
+            justify-content: center;
+        }
+        #sidebar.collapsed .sidebar-brand .mr-3 {
+            margin-right: 0;
+        }
+        #sidebar.collapsed nav {
+            padding-left: 0.75rem;
+            padding-right: 0.75rem;
+        }
+        #sidebar.collapsed .menu-link {
+            justify-content: center;
+            padding-left: 0;
+            padding-right: 0;
+        }
+        #sidebar.collapsed .menu-link i {
+            width: auto;
+            font-size: 1.1rem;
+        }
+        #sidebar.collapsed .sidebar-toggle-btn {
+            display: none;
+        }
+        #sidebar.collapsed .px-6 {
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+
+        /* Mobile sidebar overlay */
+        @media (max-width: 768px) {
+            #sidebar {
+                position: fixed;
+                left: 0;
+                top: 0;
+                height: 100vh;
+                z-index: 30;
+                transform: translateX(0);
+            }
+            #sidebar.collapsed {
+                transform: translateX(-100%);
+                width: 72px;
+            }
+            #sidebar-overlay {
+                display: none;
+            }
+            #sidebar:not(.collapsed) ~ #sidebar-overlay {
+                display: block;
+            }
+        }
+    </style>
+
+    <!-- ============================================ -->
+    <!-- SCRIPTS (Order matters!)                     -->
+    <!-- ============================================ -->
+    <script>
+        // Global API Configuration
+        window.AROMETRACK_API_URL = 'http://localhost:3000';
+        window.SUPABASE_URL = 'https://c29e0c66-b31c-41d0-b90c-aa1309f0413f.db3.buildpad.ai';
+        window.SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNzc5Nzg1MTM5LCJleHAiOjQ5MzMzODUxMzl9.chao7un8S_eeON7QDfj3hc4NXKar5s_lIQ2k52EVECQ';
+
+        // Sidebar Toggle
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const icon = document.getElementById('sidebar-toggle-icon');
+            sidebar.classList.toggle('collapsed');
+            
+            if (sidebar.classList.contains('collapsed')) {
+                if (icon) icon.className = 'fa-solid fa-angles-right text-sm';
+            } else {
+                if (icon) icon.className = 'fa-solid fa-angles-left text-sm';
+            }
+            localStorage.setItem('sidebar_collapsed', sidebar.classList.contains('collapsed'));
+        }
+
+        // Restore sidebar state
+        document.addEventListener('DOMContentLoaded', () => {
+            const saved = localStorage.getItem('sidebar_collapsed');
+            if (saved === 'true') {
+                const sidebar = document.getElementById('sidebar');
+                const icon = document.getElementById('sidebar-toggle-icon');
+                if (sidebar) sidebar.classList.add('collapsed');
+                if (icon) icon.className = 'fa-solid fa-angles-right text-sm';
+            }
+        });
+    </script>
+    <script src="js/auth.js"></script>
+    <script src="js/toast.js"></script>
+    <script src="js/chart-temperature.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/warehouse-map.js"></script>
+</body>
+</html>
